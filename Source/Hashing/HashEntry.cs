@@ -1,118 +1,110 @@
 ﻿using System;
 
-namespace AbsoluteZero {
-
+namespace AbsoluteZero.Source.Hashing
+{
     /// <summary>
-    /// Represents an entry in the transposition hash table. 
+    ///     Represents an entry in the transposition hash table.
     /// </summary>
-    public readonly struct HashEntry {
-
+    public readonly struct HashEntry
+    {
         /// <summary>
-        /// Specifies the hash entry is invalid. 
+        ///     Specifies the hash entry is invalid.
         /// </summary>
-        public const Int32 Invalid = 0;
+        public const int Invalid = 0;
 
         /// <summary>
-        /// Specifies the value associated with the hash entry gives an exact value.
+        ///     Specifies the value associated with the hash entry gives an exact value.
         /// </summary>
-        public const Int32 Exact = 1;
+        public const int Exact = 1;
 
         /// <summary>
-        /// Specifies the value associated with the hash entry gives a lower bound 
-        /// value.
+        ///     Specifies the value associated with the hash entry gives a lower bound
+        ///     value.
         /// </summary>
-        public const Int32 Alpha = 2;
+        public const int Alpha = 2;
 
         /// <summary>
-        /// Specifies the value associated with the hash entry gives an upper bound 
-        /// value.
+        ///     Specifies the value associated with the hash entry gives an upper bound
+        ///     value.
         /// </summary>
-        public const Int32 Beta = 3;
+        public const int Beta = 3;
 
         /// <summary>
-        /// The size of a hash entry in bytes. 
+        ///     The size of a hash entry in bytes.
         /// </summary>
-        public const Int32 Size = 16;
+        public const int Size = 16;
 
         /// <summary>
-        /// The number of bits used for encoding the type in the miscellaneous field. 
+        ///     The number of bits used for encoding the type in the miscellaneous field.
         /// </summary>
-        private const Int32 TypeBits = 2;
+        private const int TypeBits = 2;
 
         /// <summary>
-        /// The number of bits used for encoding the depth in the miscellaneous field. 
+        ///     The number of bits used for encoding the depth in the miscellaneous field.
         /// </summary>
-        private const Int32 DepthBits = 8;
+        private const int DepthBits = 8;
 
         /// <summary>
-        /// The amount the type is shifted in the miscellaneous field. 
+        ///     The amount the type is shifted in the miscellaneous field.
         /// </summary>
-        private const Int32 DepthShift = TypeBits;
+        private const int DepthShift = TypeBits;
 
         /// <summary>
-        /// The amount the value is shifted in the miscellaneous field. 
+        ///     The amount the value is shifted in the miscellaneous field.
         /// </summary>
-        private const Int32 ValueShift = DepthShift + DepthBits;
+        private const int ValueShift = DepthShift + DepthBits;
 
         /// <summary>
-        /// The value for normalizing the depth in the miscellaneous field. Adding 
-        /// this factor will guarantee a positive depth. 
+        ///     The value for normalizing the depth in the miscellaneous field. Adding
+        ///     this factor will guarantee a positive depth.
         /// </summary>
-        private const Int32 DepthNormal = 1 << (DepthBits - 1);
+        private const int DepthNormal = 1 << (DepthBits - 1);
 
         /// <summary>
-        /// The value for normalizing the value in the miscellaneous field. Adding 
-        /// this factor will guarantee a positive value. 
+        ///     The value for normalizing the value in the miscellaneous field. Adding
+        ///     this factor will guarantee a positive value.
         /// </summary>
-        private const Int32 ValueNormal = Engine.Infinity;
+        private const int ValueNormal = Engine.Engine.Infinity;
 
         /// <summary>
-        /// The mask for extracting the unshifted type from the miscellaneous field.
+        ///     The mask for extracting the unshifted type from the miscellaneous field.
         /// </summary>
-        private const Int32 TypeMask = (1 << TypeBits) - 1;
+        private const int TypeMask = (1 << TypeBits) - 1;
 
         /// <summary>
-        /// The mask for extracting the unshifted depth from the miscellaneous field.
+        ///     The mask for extracting the unshifted depth from the miscellaneous field.
         /// </summary>
-        private const Int32 DepthMask = (1 << DepthBits) - 1;
+        private const int DepthMask = (1 << DepthBits) - 1;
 
         /// <summary>
-        /// The Zobrist key of the position associated with the hash entry. 
+        ///     The Zobrist key of the position associated with the hash entry.
         /// </summary>
-        public readonly UInt64 Key;
+        public readonly ulong Key;
 
         /// <summary>
-        /// The best move for the position associated with the hash entry. 
+        ///     The best move for the position associated with the hash entry.
         /// </summary>
-        public readonly Int32 Move;
+        public readonly int Move;
 
         /// <summary>
-        /// Contains the entry type, search depth, and search value associated with 
-        /// the hash entry. The properties are rolled into a single value for space
-        /// efficiency. 
+        ///     Contains the entry type, search depth, and search value associated with
+        ///     the hash entry. The properties are rolled into a single value for space
+        ///     efficiency.
         /// </summary>
-        public readonly Int32 Misc;
+        private readonly int _misc;
 
         /// <summary>
-        /// The type of the value associated with the hash entry.
+        ///     The type of the value associated with the hash entry.
         /// </summary>
-        public Int32 Type {
-            get {
-                return Misc & TypeMask;
-            }
-        }
+        public int Type => _misc & TypeMask;
 
         /// <summary>
-        /// The search depth associated with the hash entry. 
+        ///     The search depth associated with the hash entry.
         /// </summary>
-        public Int32 Depth {
-            get {
-                return ((Misc >> DepthShift) - DepthNormal) & DepthMask;
-            }
-        }
+        public int Depth => ((_misc >> DepthShift) - DepthNormal) & DepthMask;
 
         /// <summary>
-        /// Constructs a hash entry.
+        ///     Constructs a hash entry.
         /// </summary>
         /// <param name="position">The position to associate with the hash entry.</param>
         /// <param name="depth">The depth of the search.</param>
@@ -120,23 +112,25 @@ namespace AbsoluteZero {
         /// <param name="move">The best move for the position.</param>
         /// <param name="value">The value of the search.</param>
         /// <param name="type">The type of the value.</param>
-        public HashEntry(Position position, Int32 depth, Int32 ply, Int32 move, Int32 value, Int32 type) {
+        public HashEntry(Position.Position position, int depth, int ply, int move, int value, int type)
+        {
             Key = position.ZobristKey;
             Move = move;
-            if (Math.Abs(value) > Engine.NearCheckmateValue)
+            if (Math.Abs(value) > Engine.Engine.NearCheckmateValue)
                 value += Math.Sign(value) * ply;
-            Misc = type | ((depth + DepthNormal) << DepthShift) | (value + ValueNormal) << ValueShift;
+            _misc = type | ((depth + DepthNormal) << DepthShift) | ((value + ValueNormal) << ValueShift);
         }
 
         /// <summary>
-        /// Returns the value associated with the hash entry. The search ply is 
-        /// required to determine correct checkmate values. 
+        ///     Returns the value associated with the hash entry. The search ply is
+        ///     required to determine correct checkmate values.
         /// </summary>
         /// <param name="ply">The ply of the search routine that is requesting the value.</param>
         /// <returns>The value associated with the hash entry.</returns>
-        public Int32 GetValue(Int32 ply) {
-            Int32 value = (Misc >> ValueShift) - ValueNormal;
-            if (Math.Abs(value) > Engine.NearCheckmateValue)
+        public int GetValue(int ply)
+        {
+            var value = (_misc >> ValueShift) - ValueNormal;
+            if (Math.Abs(value) > Engine.Engine.NearCheckmateValue)
                 return value - Math.Sign(value) * ply;
             return value;
         }

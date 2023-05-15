@@ -1,77 +1,69 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
+using AbsoluteZero.Source.Gameplay;
+using AbsoluteZero.Source.Hashing;
+using AbsoluteZero.Source.Interface;
 
-namespace AbsoluteZero {
-
+namespace AbsoluteZero.Source.Engine
+{
     /// <summary>
-    /// Encapsulates the main IPlayer interface of the Absolute Zero chess
-    /// engine. 
+    ///     Encapsulates the main IPlayer interface of the Absolute Zero chess
+    ///     engine.
     /// </summary>
-    public sealed partial class Engine : IPlayer {
+    public sealed partial class Engine
+    {
+        /// <summary>
+        ///     The number of nodes visited during the most recent search.
+        /// </summary>
+        public long Nodes { get; private set; }
 
         /// <summary>
-        /// The number of nodes visited during the most recent search. 
+        ///     The size of the transposition table in megabytes.
         /// </summary>
-        public Int64 Nodes {
-            get {
-                return _totalNodes;
-            }
-        }
-
-        /// <summary>
-        /// The size of the transposition table in megabytes. 
-        /// </summary>
-        public Int32 HashAllocation {
-            get {
-                return _table.Size >> 20;
-            }
-            set {
+        public int HashAllocation
+        {
+            get => _table.Size >> 20;
+            set
+            {
                 if (value != _table.Size >> 20)
                     _table = new HashTable(value << 20);
             }
         }
 
         /// <summary>
-        /// Whether to use experimental features. 
+        ///     Whether to use experimental features.
         /// </summary>
-        public Boolean IsExperimental { get; set; }
+        public bool IsExperimental { get; set; }
 
         /// <summary>
-        /// The name of the engine. 
+        ///     The name of the engine.
         /// </summary>
-        public String Name {
-            get {
-                return "Absolute Zero " + Version;
-            }
-        }
+        public string Name => "Absolute Zero " + Version;
 
         /// <summary>
-        /// Whether the engine is willing to accept a draw offer. 
+        ///     Whether the engine is willing to accept a draw offer.
         /// </summary>
-        public Boolean AcceptsDraw {
-            get {
-                return _finalAlpha <= DrawValue;
-            }
-        }
+        public bool AcceptsDraw => _finalAlpha <= DrawValue;
 
         /// <summary>
-        /// Returns the best move as determined by the engine. This method may write 
-        /// output to the terminal. 
+        ///     Returns the best move as determined by the engine. This method may write
+        ///     output to the terminal.
         /// </summary>
         /// <param name="position">The position to analyse.</param>
         /// <returns>The best move as determined by the engine.</returns>
-        public Int32 GetMove(Position position) {
-            if (Restrictions.Output == OutputType.GUI) {
+        public int GetMove(Position.Position position)
+        {
+            if (Restrictions.Output == OutputType.Gui)
+            {
                 Terminal.Clear();
-                Terminal.WriteLine(PVFormat, "Depth", "Value", "Principal Variation");
+                Terminal.WriteLine(PvFormat, "Depth", "Value", "Principal Variation");
                 Terminal.WriteLine("-----------------------------------------------------------------------");
             }
 
             // Initialize variables to prepare for search. 
             _abortSearch = false;
             _pvLength[0] = 0;
-            _totalNodes = 0;
+            Nodes = 0;
             _quiescenceNodes = 0;
             _referenceNodes = 0;
             _hashProbes = 0;
@@ -86,76 +78,62 @@ namespace AbsoluteZero {
             _stopwatch.Start();
 
             // Perform the search. 
-            Int32 move = Search(position);
+            var move = Search(position);
             _abortSearch = true;
 
             // Output search statistics. 
             _stopwatch.Stop();
-            Double elapsed = _stopwatch.Elapsed.TotalMilliseconds;
+            var elapsed = _stopwatch.Elapsed.TotalMilliseconds;
 
-            if (Restrictions.Output == OutputType.GUI) {
-                Terminal.WriteLine("-----------------------------------------------------------------------");
-                Terminal.WriteLine("FEN: " + position.GetFEN());
-                Terminal.WriteLine();
-                Terminal.WriteLine(position.ToString(
-                    String.Format("Absolute Zero {0} ({1}-bit)", Version, IntPtr.Size * 8),
-                    String.Format("Search time        {0:0} ms", elapsed),
-                    String.Format("Search speed       {0:0} kN/s", _totalNodes / Math.Max(elapsed, 1.0)),
-                    String.Format("Nodes visited      {0}", _totalNodes),
-                    String.Format("Moves processed    {0}", _movesSearched),
-                    String.Format("Quiescence nodes   {0:0.00 %}", (Double)_quiescenceNodes / Math.Max(_totalNodes, 1)),
-                    String.Format("Futility skips     {0:0.00 %}", (Double)_futileMoves / Math.Max(_movesSearched, 1)),
-                    String.Format("Hash cutoffs       {0:0.00 %}", (Double)_hashCutoffs / Math.Max(_hashProbes, 1)),
-                    String.Format("Hash move found    {0:0.00 %}", (Double)_hashMoveMatches / Math.Max(_hashMoveChecks, 1)),
-                    String.Format("Killer move found  {0:0.00 %}", (Double)_killerMoveMatches / Math.Max(_killerMoveChecks, 1)),
-                    String.Format("Static evaluation  {0:+0.00;-0.00}", Evaluate(position) / 100.0)));
-                Terminal.WriteLine();
-            }
+            if (Restrictions.Output != OutputType.Gui) return move;
+            Terminal.WriteLine("-----------------------------------------------------------------------");
+            Terminal.WriteLine("FEN: " + position.GetFen());
+            Terminal.WriteLine();
+            Terminal.WriteLine(position.ToString(
+                $"Absolute Zero {Version} ({IntPtr.Size * 8}-bit)",
+                $"Search time        {elapsed:0} ms",
+                $"Search speed       {Nodes / Math.Max(elapsed, 1.0):0} kN/s",
+                $"Nodes visited      {Nodes}",
+                $"Moves processed    {_movesSearched}",
+                $"Quiescence nodes   {(double)_quiescenceNodes / Math.Max(Nodes, 1):0.00 %}",
+                $"Futility skips     {(double)_futileMoves / Math.Max(_movesSearched, 1):0.00 %}",
+                $"Hash cutoffs       {(double)_hashCutoffs / Math.Max(_hashProbes, 1):0.00 %}",
+                $"Hash move found    {(double)_hashMoveMatches / Math.Max(_hashMoveChecks, 1):0.00 %}",
+                $"Killer move found  {(double)_killerMoveMatches / Math.Max(_killerMoveChecks, 1):0.00 %}",
+                $"Static evaluation  {Evaluate(position) / 100.0:+0.00;-0.00}"));
+            Terminal.WriteLine();
+
             return move;
         }
 
         /// <summary>
-        /// Stops the search if applicable. 
+        ///     Stops the search if applicable.
         /// </summary>
-        public void Stop() {
+        public void Stop()
+        {
             _abortSearch = true;
         }
 
         /// <summary>
-        /// Resets the engine. 
+        ///     Resets the engine.
         /// </summary>
-        public void Reset() {
+        public void Reset()
+        {
             _table.Clear();
-            for (Int32 i = 0; i < _killerMoves.Length; i++)
-                Array.Clear(_killerMoves[i], 0, _killerMoves[i].Length);
+            foreach (var t in _killerMoves)
+                Array.Clear(t, 0, t.Length);
+
             _finalAlpha = 0;
             _rootAlpha = 0;
-            _totalNodes = 0;
+            Nodes = 0;
         }
 
         /// <summary>
-        /// The principal variation of the most recent search.
-        /// </summary>
-        public List<Int32> PrincipalVariation {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Returns the principal variation of the most recent search.
-        /// </summary>
-        /// <returns>The principal variation of the most recent search.</returns>
-        public List<Int32> GetPrincipalVariation() {
-            List<Int32> variation = new List<Int32>();
-            for (Int32 i = 0; i < _pvLength[0]; i++)
-                variation.Add(_pvMoves[0][i]);
-            return variation;
-        }
-
-        /// <summary>
-        /// Draws the player's graphical elements. 
+        ///     Draws the player's graphical elements.
         /// </summary>
         /// <param name="g">The drawing surface.</param>
-        public void Draw(Graphics g) { }
+        public void Draw(Graphics g)
+        {
+        }
     }
 }

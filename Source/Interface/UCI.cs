@@ -1,30 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Threading;
-using System.Windows.Forms;
+using AbsoluteZero.Source.Core;
+using AbsoluteZero.Source.Gameplay;
+using AbsoluteZero.Source.Testing;
+using AbsoluteZero.Source.Utilities;
 
-namespace AbsoluteZero {
-
+namespace AbsoluteZero.Source.Interface
+{
     /// <summary>
-    /// Provides methods for UCI/command-line parsing. 
+    ///     Provides methods for UCI/command-line parsing.
     /// </summary>
-    public static class UCI {
-
+    public static class Uci
+    {
         /// <summary>
-        /// Executes the parsing. 
+        ///     Executes the parsing.
         /// </summary>
-        public static void Run() {
-            Restrictions.Output = OutputType.UCI;
-            Engine engine = new Engine();
-            Position position = Position.Create(Position.StartingFEN);
+        public static void Run()
+        {
+            Restrictions.Output = OutputType.Uci;
+            var engine = new Engine.Engine();
+            var position = Position.Position.Create(Position.Position.StartingFen);
 
-            String command;
-            while ((command = Console.ReadLine()) != null) {
-                List<String> terms = new List<String>(command.Split(' '));
+            string command;
+            while ((command = Console.ReadLine()) != null)
+            {
+                var terms = new List<string>(command.Split(' '));
 
-                switch (terms[0]) {
+                switch (terms[0])
+                {
                     default:
                         Terminal.WriteLine("Unknown command: {0}", terms[0]);
                         Terminal.WriteLine("Enter \"help\" for assistance.");
@@ -33,7 +37,8 @@ namespace AbsoluteZero {
                     case "uci":
                         Terminal.WriteLine("id name " + engine.Name);
                         Terminal.WriteLine("id author Zong Zheng Li");
-                        Terminal.WriteLine("option name Hash type spin default " + Engine.DefaultHashAllocation + " min 1 max 2047");
+                        Terminal.WriteLine("option name Hash type spin default " + Engine.Engine.DefaultHashAllocation +
+                                           " min 1 max 2047");
                         Terminal.WriteLine("uciok");
                         break;
 
@@ -43,54 +48,52 @@ namespace AbsoluteZero {
 
                     case "setoption":
                         if (terms.Contains("Hash"))
-                            engine.HashAllocation = Int32.Parse(terms[terms.IndexOf("value") + 1]);
+                            engine.HashAllocation = int.Parse(terms[terms.IndexOf("value") + 1]);
                         break;
 
                     case "position":
-                        String fen = Position.StartingFEN;
+                        var fen = Position.Position.StartingFen;
                         if (terms[1] != "startpos")
-                            fen = command.Substring(command.IndexOf("fen") + 4);
-                        position = Position.Create(fen);
+                            fen = command.Substring(command.IndexOf("fen", StringComparison.Ordinal) + 4);
+                        position = Position.Position.Create(fen);
 
-                        Int32 movesIndex = terms.IndexOf("moves");
+                        var movesIndex = terms.IndexOf("moves");
                         if (movesIndex >= 0)
-                            for (Int32 i = movesIndex + 1; i < terms.Count; i++)
+                            for (var i = movesIndex + 1; i < terms.Count; i++)
                                 position.Make(Move.Create(position, terms[i]));
                         break;
 
                     case "go":
                         Restrictions.Reset();
-                        for (Int32 i = 1; i < terms.Count; i++)
-                            switch (terms[i]) {
-                                default:
-                                case "infinite":
-                                    break;
+                        for (var i = 1; i < terms.Count; i++)
+                            switch (terms[i])
+                            {
                                 case "depth":
-                                    Restrictions.Depth = Int32.Parse(terms[i + 1]);
+                                    Restrictions.Depth = int.Parse(terms[i + 1]);
                                     Restrictions.UseTimeControls = false;
                                     break;
                                 case "movetime":
-                                    Restrictions.MoveTime = Int32.Parse(terms[i + 1]);
+                                    Restrictions.MoveTime = int.Parse(terms[i + 1]);
                                     Restrictions.UseTimeControls = false;
                                     break;
                                 case "wtime":
-                                    Restrictions.TimeControl[Colour.White] = Int32.Parse(terms[i + 1]);
+                                    Restrictions.TimeControl[Colour.White] = int.Parse(terms[i + 1]);
                                     Restrictions.UseTimeControls = true;
                                     break;
                                 case "btime":
-                                    Restrictions.TimeControl[Colour.Black] = Int32.Parse(terms[i + 1]);
+                                    Restrictions.TimeControl[Colour.Black] = int.Parse(terms[i + 1]);
                                     Restrictions.UseTimeControls = true;
                                     break;
                                 case "winc":
-                                    Restrictions.TimeIncrement[Colour.White] = Int32.Parse(terms[i + 1]);
+                                    Restrictions.TimeIncrement[Colour.White] = int.Parse(terms[i + 1]);
                                     Restrictions.UseTimeControls = true;
                                     break;
                                 case "binc":
-                                    Restrictions.TimeIncrement[Colour.Black] = Int32.Parse(terms[i + 1]);
+                                    Restrictions.TimeIncrement[Colour.Black] = int.Parse(terms[i + 1]);
                                     Restrictions.UseTimeControls = true;
                                     break;
                                 case "nodes":
-                                    Restrictions.Nodes = Int32.Parse(terms[i + 1]);
+                                    Restrictions.Nodes = int.Parse(terms[i + 1]);
                                     Restrictions.UseTimeControls = false;
                                     break;
                                 case "ponder":
@@ -103,10 +106,13 @@ namespace AbsoluteZero {
                                     // TODO: implement command. 
                                     break;
                             }
-                        new Thread(new ThreadStart(() => {
-                            Int32 bestMove = engine.GetMove(position);
+
+                        new Thread(() =>
+                        {
+                            var bestMove = engine.GetMove(position);
                             Terminal.WriteLine("bestmove " + Stringify.Move(bestMove));
-                        })) {
+                        })
+                        {
                             IsBackground = true
                         }.Start();
                         break;
@@ -123,11 +129,11 @@ namespace AbsoluteZero {
                         return;
 
                     case "perft":
-                        Perft.Iterate(position, Int32.Parse(terms[1]));
+                        Perft.Iterate(position, int.Parse(terms[1]));
                         break;
 
                     case "divide":
-                        Perft.Divide(position, Int32.Parse(terms[1]));
+                        Perft.Divide(position, int.Parse(terms[1]));
                         break;
 
                     case "draw":
@@ -135,7 +141,7 @@ namespace AbsoluteZero {
                         break;
 
                     case "fen":
-                        Terminal.WriteLine(position.GetFEN());
+                        Terminal.WriteLine(position.GetFen());
                         break;
 
                     case "ponderhit":
@@ -153,7 +159,8 @@ namespace AbsoluteZero {
                         Terminal.WriteLine("                    by the given FEN. \"startpos\" is accepted for the");
                         Terminal.WriteLine("                    starting position");
                         Terminal.WriteLine("go [type] [number]  Searches the current position. Search types include");
-                        Terminal.WriteLine("                    \"movetime\", \"depth\", \"nodes\", \"wtime\", \"btime\",");
+                        Terminal.WriteLine(
+                            "                    \"movetime\", \"depth\", \"nodes\", \"wtime\", \"btime\",");
                         Terminal.WriteLine("                    \"winc\", and \"binc\"");
                         Terminal.WriteLine("perft [number]      Runs perft() on the current position to the given");
                         Terminal.WriteLine("                    depth");

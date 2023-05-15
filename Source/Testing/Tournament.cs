@@ -1,56 +1,66 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using AbsoluteZero.Source.Gameplay;
+using Random = AbsoluteZero.Source.Utilities.Random;
 
-namespace AbsoluteZero {
-
+namespace AbsoluteZero.Source.Testing
+{
     /// <summary>
-    /// Provides methods for playing a tournament between two engines. 
+    ///     Provides methods for playing a tournament between two engines.
     /// </summary>
-    public static class Tournament {
-
+    public static class Tournament
+    {
         /// <summary>
-        /// Specifies header and result formatting. 
+        ///     The number of matches between file updates.
         /// </summary>
-        private static readonly String ResultFormat = "     {0,-8}{1,-8}{2,-8}{3,-8}{4, -8}{5}";
+        private const int UpdateInterval = 10;
 
         /// <summary>
-        /// The number of matches between file updates. 
+        ///     Specifies header and result formatting.
         /// </summary>
-        private const Int32 UpdateInterval = 10;
+        private const string ResultFormat = "     {0,-8}{1,-8}{2,-8}{3,-8}{4, -8}{5}";
 
         /// <summary>
-        /// The unique ID code for the tournament.  
+        ///     The unique ID code for the tournament.
         /// </summary>
-        private static String ID = "Tournament " + DateTime.Now.ToString().Replace('/', '-').Replace(':', '.');
+        private static readonly string Id = "Tournament " +
+                                            DateTime.Now.ToString(CultureInfo.InvariantCulture).Replace('/', '-')
+                                                .Replace(':', '.');
 
         /// <summary>
-        /// Begins the tournament with the given positions. 
+        ///     Begins the tournament with the given positions.
         /// </summary>
         /// <param name="epd">A list of positions to play in EPD format.</param>
-        public static void Run(List<String> epd) {
-            Engine experimental = new Engine() { IsExperimental = true };
-            Engine standard = new Engine();
+        public static void Run(List<string> epd)
+        {
+            var experimental = new Engine.Engine { IsExperimental = true };
+            var standard = new Engine.Engine();
 
             Restrictions.Output = OutputType.None;
-            Int32 wins = 0;
-            Int32 losses = 0;
-            Int32 draws = 0;
+            var wins = 0;
+            var losses = 0;
+            var draws = 0;
 
-            using (StreamWriter sw = new StreamWriter(ID + ".txt")) {
-                sw.WriteLine(new String(' ', UpdateInterval) + String.Format(ResultFormat, "Games", "Wins", "Losses", "Draws", "Elo", "Error"));
+            using (var sw = new StreamWriter(Id + ".txt"))
+            {
+                sw.WriteLine(new string(' ', UpdateInterval) +
+                             string.Format(ResultFormat, "Games", "Wins", "Losses", "Draws", "Elo", "Error"));
                 sw.WriteLine("--------------------------------------------------------------------");
 
                 // Play the tournament. 
-                for (Int32 games = 1; ; games++) {
+                for (var games = 1;; games++)
+                {
                     sw.Flush();
                     experimental.Reset();
                     standard.Reset();
-                    Position position = Position.Create(epd[Random.Int32(epd.Count - 1)]);
-                    MatchResult result = Match.Play(experimental, standard, position, MatchOptions.RandomizeColour);
+                    var position = Position.Position.Create(epd[Random.Int32(epd.Count - 1)]);
+                    var result = Match.Play(experimental, standard, position, MatchOptions.RandomizeColour);
 
                     // Write the match result. 
-                    switch (result) {
+                    switch (result)
+                    {
                         case MatchResult.Win:
                             sw.Write('1');
                             wins++;
@@ -67,21 +77,22 @@ namespace AbsoluteZero {
                             sw.Write('*');
                             draws++;
                             break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
 
                     // Write the cummulative results. 
-                    if (games % UpdateInterval == 0) {
-                        Double delta = Elo.GetDelta(wins, losses, draws);
-                        String elo = String.Format("{0:+0;-0}", delta);
+                    if (games % UpdateInterval != 0) continue;
+                    var delta = Elo.GetDelta(wins, losses, draws);
+                    var elo = $"{delta:+0;-0}";
 
-                        Double[] bound = Elo.GetError(Elo.Z95, wins, losses, draws);
-                        Double lower = Math.Max(bound[0], -999);
-                        Double upper = Math.Min(bound[1], 999);
-                        String asterisk = Elo.IsErrorValid(wins, losses, draws) ? String.Empty : "*";
-                        String error = String.Format("{0:+0;-0} {1:+0;-0}{2}", lower, upper, asterisk);
+                    var bound = Elo.GetError(Elo.Z95, wins, losses, draws);
+                    var lower = Math.Max(bound[0], -999);
+                    var upper = Math.Min(bound[1], 999);
+                    var asterisk = Elo.IsErrorValid(wins, losses, draws) ? string.Empty : "*";
+                    var error = $"{lower:+0;-0} {upper:+0;-0}{asterisk}";
 
-                        sw.WriteLine(String.Format(ResultFormat, games, wins, losses, draws, elo, error));
-                    }
+                    sw.WriteLine(ResultFormat, games, wins, losses, draws, elo, error);
                 }
             }
         }

@@ -1,107 +1,105 @@
-﻿using System;
-
-namespace AbsoluteZero {
-
+﻿namespace AbsoluteZero.Source.Position
+{
     /// <summary>
-    /// Declares the constants and fields used to represent the chess position.
+    ///     Declares the constants and fields used to represent the chess position.
     /// </summary>
-    public sealed partial class Position : IEquatable<Position> {
+    public sealed partial class Position
+    {
+        /// <summary>
+        ///     The FEN string of the starting chess position.
+        /// </summary>
+        public const string StartingFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
         /// <summary>
-        /// The FEN string of the starting chess position. 
+        ///     The maximum number of plies the position is to support.
         /// </summary>
-        public const String StartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        private const int HalfMovesLimit = 1024;
 
         /// <summary>
-        /// The maximum number of plies the position is to support. 
+        ///     The value representing an invalid square.
         /// </summary>
-        public const Int32 HalfMovesLimit = 1024;
+        public const int InvalidSquare = -1;
 
         /// <summary>
-        /// The value representing an invalid square. 
+        ///     The values indicating whether kingside castling is permitted for each
+        ///     colour. CastleKingside[c] is positive if and only if c can castle
+        ///     kingside.
         /// </summary>
-        public const Int32 InvalidSquare = -1;
+        private int[] _castleKingside = new int[2];
 
         /// <summary>
-        /// The collection of pieces on the squares on the chessboard. Square[n] 
-        /// gives the piece at the nth square in the chess position where 0 is A8 and 
-        /// 63 is H1. 
+        ///     The values indicating whether queenside castling is permitted for each
+        ///     colour. CastleQueenside[c] is positive if and only if c can castle
+        ///     queenside.
         /// </summary>
-        public Int32[] Square = new Int32[64];
+        private int[] _castleQueenside = new int[2];
 
         /// <summary>
-        /// The collection of bitboards in representing the sets of pieces. 
-        /// Bitboard[p] gives the bitboard for the piece represented by p. 
+        ///     The EnPassantSquare values for every ply up to and including the current
+        ///     ply.
         /// </summary>
-        public UInt64[] Bitboard = new UInt64[16];
+        private int[] _enPassantHistory = new int[HalfMovesLimit];
 
         /// <summary>
-        /// The bitboard of all pieces in play. 
+        ///     The square indicating en passant is permitted and giving where a pawn
+        ///     performing enpassant would move to.
         /// </summary>
-        public UInt64 OccupiedBitboard = 0;
+        private int _enPassantSquare = InvalidSquare;
 
         /// <summary>
-        /// The total material values for each colour. Material[c] gives the total 
-        /// material possessed by the colour c of the appropriate sign. 
+        ///     The FiftyMovesClock values for every ply up to and including the current
+        ///     ply.
         /// </summary>
-        public Int32[] Material = new Int32[2];
+        private int[] _fiftyMovesHistory = new int[HalfMovesLimit];
 
         /// <summary>
-        /// The colour that is to make the next move. 
+        ///     The ZobristKey values for every ply up to and including the current ply.
         /// </summary>
-        public Int32 SideToMove = 0;
+        private ulong[] _zobristKeyHistory = new ulong[HalfMovesLimit];
 
         /// <summary>
-        /// The total number of plies the position has advanced from its initial 
-        /// state. 
+        ///     The collection of bitboards in representing the sets of pieces.
+        ///     Bitboard[p] gives the bitboard for the piece represented by p.
         /// </summary>
-        public Int32 HalfMoves = 0;
+        public ulong[] Bitboard = new ulong[16];
 
         /// <summary>
-        /// The values indicating whether kingside castling is permitted for each 
-        /// colour. CastleKingside[c] is positive if and only if c can castle 
-        /// kingside. 
+        ///     The value used to track and enforce the whether fifty-move rule.
         /// </summary>
-        public Int32[] CastleKingside = new Int32[2];
+        public int FiftyMovesClock = 0;
 
         /// <summary>
-        /// The values indicating whether queenside castling is permitted for each 
-        /// colour. CastleQueenside[c] is positive if and only if c can castle 
-        /// queenside. 
+        ///     The total number of plies the position has advanced from its initial
+        ///     state.
         /// </summary>
-        public Int32[] CastleQueenside = new Int32[2];
+        public int HalfMoves = 0;
 
         /// <summary>
-        /// The square indicating en passant is permitted and giving where a pawn 
-        /// performing enpassant would move to. 
+        ///     The total material values for each colour. Material[c] gives the total
+        ///     material possessed by the colour c of the appropriate sign.
         /// </summary>
-        public Int32 EnPassantSquare = InvalidSquare;
+        public int[] Material = new int[2];
 
         /// <summary>
-        /// The EnPassantSquare values for every ply up to and including the current 
-        /// ply. 
+        ///     The bitboard of all pieces in play.
         /// </summary>
-        public Int32[] EnPassantHistory = new Int32[HalfMovesLimit];
+        public ulong OccupiedBitboard = 0;
 
         /// <summary>
-        /// The value used to track and enforce the whether fifty-move rule. 
+        ///     The colour that is to make the next move.
         /// </summary>
-        public Int32 FiftyMovesClock = 0;
+        public int SideToMove = 0;
 
         /// <summary>
-        /// The FiftyMovesClock values for every ply up to and including the current 
-        /// ply. 
+        ///     The collection of pieces on the squares on the chessboard. Square[n]
+        ///     gives the piece at the nth square in the chess position where 0 is A8 and
+        ///     63 is H1.
         /// </summary>
-        public Int32[] FiftyMovesHistory = new Int32[HalfMovesLimit];
+        public int[] Square = new int[64];
 
         /// <summary>
-        /// The Zobrist hash value of the position. 
+        ///     The Zobrist hash value of the position.
         /// </summary>
-        public UInt64 ZobristKey;
-
-        /// <summary>
-        /// The ZobristKey values for every ply up to and including the current ply. 
-        /// </summary>
-        public UInt64[] ZobristKeyHistory = new UInt64[HalfMovesLimit];
+        public ulong ZobristKey;
     }
 }

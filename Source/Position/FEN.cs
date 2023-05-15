@@ -1,39 +1,42 @@
 ﻿using System;
 using System.Text;
+using AbsoluteZero.Source.Core;
+using AbsoluteZero.Source.Utilities;
 
-namespace AbsoluteZero {
-
+namespace AbsoluteZero.Source.Position
+{
     /// <summary>
-    /// Encapsulates the FEN handling component of the chess position. 
+    ///     Encapsulates the FEN handling component of the chess position.
     /// </summary>
-    public sealed partial class Position : IEquatable<Position> {
-
+    public sealed partial class Position
+    {
         /// <summary>
-        /// Parses the given FEN string and changes the position's state to represent 
-        /// that of the FEN string. 
+        ///     Parses the given FEN string and changes the position's state to represent
+        ///     that of the FEN string.
         /// </summary>
         /// <param name="fen">The FEN string to parse.</param>
         /// <returns>Whether the FEN string was parsed successfully.</returns>
-        private Boolean TryParseFen(String fen) {
-
+        private bool TryParseFen(string fen)
+        {
             // Clear squares. 
             Array.Clear(Square, 0, Square.Length);
 
             // Split FEN into terms based on whitespace. 
-            String[] terms = fen.Split(new Char[0], StringSplitOptions.RemoveEmptyEntries);
+            var terms = fen.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
             if (terms.Length < 2)
                 return false;
 
-            Int32 file = 0;
-            Int32 rank = 0;
+            var file = 0;
+            var rank = 0;
 
             // Determine piece locations and populate squares. 
-            foreach (Char c in terms[0]) {
-                Char uc = Char.ToUpperInvariant(c);
-                Int32 colour = (c == uc) ? Colour.White : Colour.Black;
+            foreach (var c in terms[0])
+            {
+                var uc = char.ToUpperInvariant(c);
+                var colour = c == uc ? Colour.White : Colour.Black;
 
-                switch (uc) {
-
+                switch (uc)
+                {
                     // Parse number denoting blank squares. 
                     default:
                         if (uc > '8' || uc < '0')
@@ -83,7 +86,8 @@ namespace AbsoluteZero {
             }
 
             // Determine side to move. 
-            switch (terms[1]) {
+            switch (terms[1])
+            {
                 case "w":
                     SideToMove = Colour.White;
                     break;
@@ -95,40 +99,40 @@ namespace AbsoluteZero {
             }
 
             // Determine castling rights. 
-            if (terms.Length > 2 && terms[2] != "-") {
-                foreach (Char c in terms[2]) {
-                    switch (c) {
+            if (terms.Length > 2 && terms[2] != "-")
+                foreach (var c in terms[2])
+                    switch (c)
+                    {
                         case 'Q':
-                            CastleQueenside[Colour.White] = 1;
+                            _castleQueenside[Colour.White] = 1;
                             break;
                         case 'K':
-                            CastleKingside[Colour.White] = 1;
+                            _castleKingside[Colour.White] = 1;
                             break;
                         case 'q':
-                            CastleQueenside[Colour.Black] = 1;
+                            _castleQueenside[Colour.Black] = 1;
                             break;
                         case 'k':
-                            CastleKingside[Colour.Black] = 1;
+                            _castleKingside[Colour.Black] = 1;
                             break;
                         default:
                             return false;
                     }
-                }
-            }
 
             // Determine en passant square. 
-            if (terms.Length > 3 && terms[3] != "-") {
-                EnPassantSquare = SquareAt(terms[3]);
-                if (EnPassantSquare > 63 || EnPassantSquare < 0)
+            if (terms.Length > 3 && terms[3] != "-")
+            {
+                _enPassantSquare = SquareAt(terms[3]);
+                if (_enPassantSquare > 63 || _enPassantSquare < 0)
                     return false;
             }
 
             // Determine fifty-moves clock and plies advanced. 
-            if (terms.Length > 5) {
-                if (!Int32.TryParse(terms[4], out FiftyMovesClock) || FiftyMovesClock < 0)
+            if (terms.Length > 5)
+            {
+                if (!int.TryParse(terms[4], out FiftyMovesClock) || FiftyMovesClock < 0)
                     return false;
-                Int32 moveNumber;
-                if (!Int32.TryParse(terms[5], out moveNumber) || moveNumber < 1)
+                if (!int.TryParse(terms[5], out var moveNumber) || moveNumber < 1)
                     return false;
                 HalfMoves = 2 * (moveNumber - 1) + SideToMove;
                 HalfMoves = Math.Max(0, HalfMoves);
@@ -136,53 +140,63 @@ namespace AbsoluteZero {
             }
 
             // Initialize history information. 
-            for (Int32 i = 0; i < EnPassantHistory.Length; i++)
-                EnPassantHistory[i] = InvalidSquare;
-            EnPassantHistory[HalfMoves] = EnPassantSquare;
-            FiftyMovesHistory[HalfMoves] = FiftyMovesClock;
+            for (var i = 0; i < _enPassantHistory.Length; i++)
+                _enPassantHistory[i] = InvalidSquare;
+            _enPassantHistory[HalfMoves] = _enPassantSquare;
+            _fiftyMovesHistory[HalfMoves] = FiftyMovesClock;
 
             // Initialize bitboards and material information. 
-            for (Int32 square = 0; square < Square.Length; square++)
-                if (Square[square] != Piece.Empty) {
-                    Int32 colour = Square[square] & Colour.Mask;
+            for (var square = 0; square < Square.Length; square++)
+                if (Square[square] != Piece.Empty)
+                {
+                    var colour = Square[square] & Colour.Mask;
                     Bitboard[Square[square]] |= 1UL << square;
                     Bitboard[colour] |= 1UL << square;
                     OccupiedBitboard |= 1UL << square;
                     if ((Square[square] & Piece.Mask) != Piece.King)
-                        Material[colour] += Engine.PieceValue[Square[square]];
+                        Material[colour] += Engine.Engine.PieceValue[Square[square]];
                 }
 
             // Initialize Zobrist key and history. 
             ZobristKey = GetZobristKey();
-            ZobristKeyHistory[HalfMoves] = ZobristKey;
+            _zobristKeyHistory[HalfMoves] = ZobristKey;
 
             return true;
         }
 
         /// <summary>
-        /// Returns the FEN string that describes the position.
+        ///     Returns the FEN string that describes the position.
         /// </summary>
         /// <returns>The FEN string that describes the position.</returns>
-        public String GetFEN() {
-            StringBuilder sb = new StringBuilder();
+        public string GetFen()
+        {
+            var sb = new StringBuilder();
 
-            for (Int32 rank = 0; rank < 8; rank++) {
-                Int32 spaces = 0;
-                for (Int32 file = 0; file < 8; file++) {
-                    Int32 square = file + rank * 8;
+            for (var rank = 0; rank < 8; rank++)
+            {
+                var spaces = 0;
+                for (var file = 0; file < 8; file++)
+                {
+                    var square = file + rank * 8;
                     if (Square[square] == Piece.Empty)
+                    {
                         spaces++;
-                    else {
-                        if (spaces > 0) {
+                    }
+                    else
+                    {
+                        if (spaces > 0)
+                        {
                             sb.Append(spaces);
                             spaces = 0;
                         }
-                        String piece = Stringify.PieceInitial(Square[square]);
+
+                        var piece = Stringify.PieceInitial(Square[square]);
                         if ((Square[square] & Colour.Mask) == Colour.Black)
                             piece = piece.ToLowerInvariant();
                         sb.Append(piece);
                     }
                 }
+
                 if (spaces > 0)
                     sb.Append(spaces);
                 if (rank < 7)
@@ -193,20 +207,20 @@ namespace AbsoluteZero {
             sb.Append(SideToMove == Colour.White ? 'w' : 'b');
             sb.Append(' ');
 
-            if (CastleKingside[Colour.White] > 0)
+            if (_castleKingside[Colour.White] > 0)
                 sb.Append('K');
-            if (CastleQueenside[Colour.White] > 0)
+            if (_castleQueenside[Colour.White] > 0)
                 sb.Append('Q');
-            if (CastleKingside[Colour.Black] > 0)
+            if (_castleKingside[Colour.Black] > 0)
                 sb.Append('k');
-            if (CastleQueenside[Colour.Black] > 0)
+            if (_castleQueenside[Colour.Black] > 0)
                 sb.Append('q');
             if (sb[sb.Length - 1] == ' ')
                 sb.Append('-');
             sb.Append(' ');
 
-            if (EnPassantSquare != InvalidSquare)
-                sb.Append(Stringify.Square(EnPassantSquare));
+            if (_enPassantSquare != InvalidSquare)
+                sb.Append(Stringify.Square(_enPassantSquare));
             else
                 sb.Append('-');
             sb.Append(' ');

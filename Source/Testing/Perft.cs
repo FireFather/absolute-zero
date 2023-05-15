@@ -1,161 +1,127 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using AbsoluteZero.Source.Interface;
+using AbsoluteZero.Source.Utilities;
 
-namespace AbsoluteZero {
-
+namespace AbsoluteZero.Source.Testing
+{
     /// <summary>
-    /// Provides methods for performing perft-related functions. 
+    ///     Provides methods for performing perft-related functions.
     /// </summary>
-    public static class Perft {
+    public static class Perft
+    {
+        /// <summary>
+        ///     The maximum depth for perft.
+        /// </summary>
+        private const int DepthLimit = 64;
 
         /// <summary>
-        /// The maximum depth for perft. 
+        ///     The maximum number of moves to anticipate for a position.
         /// </summary>
-        private const Int32 DepthLimit = 64;
+        private const int MovesLimit = 256;
 
         /// <summary>
-        /// The maximum number of moves to anticipate for a position. 
+        ///     Stores the generated moves.
         /// </summary>
-        private const Int32 MovesLimit = 256;
+        private static readonly int[][] Moves = new int[DepthLimit][];
 
         /// <summary>
-        /// Stores the generated moves. 
+        ///     Initializes the moves array.
         /// </summary>
-        private static Int32[][] _moves = new Int32[DepthLimit][];
-
-        /// <summary>
-        /// Initializes the moves array. 
-        /// </summary>
-        static Perft() {
-            for (Int32 i = 0; i < _moves.Length; i++)
-                _moves[i] = new Int32[MovesLimit];
+        static Perft()
+        {
+            for (var i = 0; i < Moves.Length; i++)
+                Moves[i] = new int[MovesLimit];
         }
 
         /// <summary>
-        /// Performs perft on the given position from a depth of 1 to the given 
-        /// depth. This method writes the results to the terminal. 
+        ///     Performs perft on the given position from a depth of 1 to the given
+        ///     depth. This method writes the results to the terminal.
         /// </summary>
         /// <param name="position">The position to perform perft on.</param>
         /// <param name="depth">The final depth to perform perft to.</param>
-        public static void Iterate(Position position, Int32 depth) {
-            const Int32 DepthWidth = 10;
-            const Int32 TimeWidth = 11;
-            const Int32 SpeedWidth = 14;
-            String format = "{0,-" + DepthWidth + "}{1,-" + TimeWidth + "}{2,-" + SpeedWidth + "}{3}";
+        public static void Iterate(Position.Position position, int depth)
+        {
+            const int depthWidth = 10;
+            const int timeWidth = 11;
+            const int speedWidth = 14;
+            var format = "{0,-" + depthWidth + "}{1,-" + timeWidth + "}{2,-" + speedWidth + "}{3}";
 
             Terminal.WriteLine(format, "Depth", "Time", "Speed", "Nodes");
             Terminal.WriteLine("-----------------------------------------------------------------------");
-            for (Int32 d = 1; d <= depth; d++) {
-                Stopwatch stopwatch = Stopwatch.StartNew();
-                Int64 nodes = Nodes(position, d);
+            for (var d = 1; d <= depth; d++)
+            {
+                var stopwatch = Stopwatch.StartNew();
+                var nodes = Nodes(position, d);
                 stopwatch.Stop();
 
-                Double elapsed = stopwatch.Elapsed.TotalMilliseconds;
-                String t = String.Format("{0:0} ms", elapsed);
-                String s = String.Format("{0:0} kN/s", nodes / elapsed);
+                var elapsed = stopwatch.Elapsed.TotalMilliseconds;
+                var t = $"{elapsed:0} ms";
+                var s = $"{nodes / elapsed:0} kN/s";
 
                 Terminal.WriteLine(format, d, t, s, nodes);
             }
+
             Terminal.WriteLine("-----------------------------------------------------------------------");
         }
 
         /// <summary>
-        /// Performs divide on the given position with the given depth. This
-        /// essentially performs perft on each of the positions arising from the 
-        /// legal moves for the given position. This method writes the results to 
-        /// the terminal. 
+        ///     Performs divide on the given position with the given depth. This
+        ///     essentially performs perft on each of the positions arising from the
+        ///     legal moves for the given position. This method writes the results to
+        ///     the terminal.
         /// </summary>
         /// <param name="position">The position to perform divide on.</param>
         /// <param name="depth">The depth to perform divide with.</param>
-        public static void Divide(Position position, Int32 depth) {
-            const Int32 MoveWidth = 8;
-            String format = "{0,-" + MoveWidth + "}{1}";
+        public static void Divide(Position.Position position, int depth)
+        {
+            const int moveWidth = 8;
+            var format = "{0,-" + moveWidth + "}{1}";
 
             Terminal.WriteLine(format, "Move", "Nodes");
             Terminal.WriteLine("-----------------------------------------------------------------------");
 
-            List<Int32> moves = position.LegalMoves();
-            Int64 totalNodes = 0;
-            foreach (Int32 move in moves) {
+            var moves = position.LegalMoves();
+            long totalNodes = 0;
+            foreach (var move in moves)
+            {
                 position.Make(move);
-                Int64 nodes = Nodes(position, depth - 1);
+                var nodes = Nodes(position, depth - 1);
                 position.Unmake(move);
                 totalNodes += nodes;
 
                 Terminal.WriteLine(format, Stringify.Move(move), nodes);
             }
+
             Terminal.WriteLine("-----------------------------------------------------------------------");
             Terminal.WriteLine("Moves: " + moves.Count);
             Terminal.WriteLine("Nodes: " + totalNodes);
         }
 
         /// <summary>
-        /// Performs perft on the given position with the given depth and returns the 
-        /// result. 
+        ///     Performs perft on the given position with the given depth and returns the
+        ///     result.
         /// </summary>
         /// <param name="position">The position to perform perft on.</param>
         /// <param name="depth">The depth to perform perft with.</param>
         /// <returns>The result of performing perft.</returns>
-        public static Int64 Nodes(Position position, Int32 depth) {
+        private static long Nodes(Position.Position position, int depth)
+        {
             if (depth <= 0)
                 return 1;
 
-            Int32 movesCount = position.LegalMoves(_moves[depth]);
+            var movesCount = position.LegalMoves(Moves[depth]);
             if (depth == 1)
                 return movesCount;
 
-            Int64 nodes = 0;
-            for (Int32 i = 0; i < movesCount; i++) {
-                position.Make(_moves[depth][i]);
+            long nodes = 0;
+            for (var i = 0; i < movesCount; i++)
+            {
+                position.Make(Moves[depth][i]);
                 nodes += Nodes(position, depth - 1);
-                position.Unmake(_moves[depth][i]);
+                position.Unmake(Moves[depth][i]);
             }
+
             return nodes;
         }
-
-        /// <summary>
-        /// Estimates the result of performing perft on the given position with the 
-        /// given depth and returns the estimation. 
-        /// </summary>
-        /// <param name="position">The position to estimate performing perft on.</param>
-        /// <param name="depth">The depth to estimate performing perft with.</param>
-        /// <param name="milliseconds">The number of milliseconds given for the estimation.</param>
-        /// <param name="epsilon">The factor giving the fraction of nodes to actually evaluate.</param>
-        /// <returns>The estimated result of performing perft.</returns>
-        public static Double Estimate(Position position, Int32 depth, Int32 milliseconds = 100, Double epsilon = .045) {
-            Int32 iterations = 0;
-            Double total = 0;
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            while (stopwatch.ElapsedMilliseconds < milliseconds) {
-                total += Simulate(position, depth, epsilon);
-                iterations++;
-            }
-            return Math.Round(Math.Pow(epsilon, -depth) * total / iterations);
-        }
-
-        /// <summary>
-        /// Simulates the result of performing perft on the given position with the 
-        /// given depth and returns the result. 
-        /// </summary>
-        /// <param name="position">The position to simulate performing perft on.</param>
-        /// <param name="depth">The depth to simulate performing perft with.</param>
-        /// <param name="epsilon">The factor giving the fraction of nodes to actually evaluate.</param>
-        /// <returns>The simulated result of performing perft.</returns>
-        private static Int64 Simulate(Position position, Int32 depth, Double epsilon) {
-            Int32 movesCount = position.LegalMoves(_moves[depth]);
-            if (depth <= 1)
-                return Random.Double() < epsilon ? movesCount : 0;
-
-            Int64 nodes = 0;
-            for (Int32 i = 0; i < movesCount; i++)
-                if (Random.Double() < epsilon) {
-                    position.Make(_moves[depth][i]);
-                    nodes += Simulate(position, depth - 1, epsilon);
-                    position.Unmake(_moves[depth][i]);
-                }
-            return nodes;
-        }
-
     }
 }

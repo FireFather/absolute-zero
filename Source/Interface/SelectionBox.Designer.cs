@@ -1,4 +1,4 @@
-﻿namespace AbsoluteZero {
+﻿namespace AbsoluteZero.Source.Interface {
     partial class SelectionBox {
         /// <summary>
         /// Required designer variable.
@@ -59,7 +59,7 @@
             this.button.TabIndex = 3;
             this.button.Text = "OK";
             this.button.UseVisualStyleBackColor = true;
-            this.button.Click += new System.EventHandler(this.OKClick);
+            this.button.Click += new System.EventHandler(this.OkClick);
             // 
             // responseBox
             // 

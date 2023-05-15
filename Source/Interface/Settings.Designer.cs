@@ -1,4 +1,4 @@
-﻿namespace AbsoluteZero {
+﻿namespace AbsoluteZero.Source.Interface {
     partial class Settings {
         /// <summary>
         /// Required designer variable.
@@ -30,7 +30,6 @@
             this.blackPanel = new System.Windows.Forms.GroupBox();
             this.blackComputer = new System.Windows.Forms.RadioButton();
             this.blackHuman = new System.Windows.Forms.RadioButton();
-            this.button1 = new System.Windows.Forms.Button();
             this.whitePanel.SuspendLayout();
             this.blackPanel.SuspendLayout();
             this.SuspendLayout();
@@ -118,23 +117,11 @@
             this.blackHuman.Text = "Human";
             this.blackHuman.UseVisualStyleBackColor = true;
             // 
-            // button1
-            // 
-            this.button1.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(8, 115);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(204, 27);
-            this.button1.TabIndex = 4;
-            this.button1.Text = "Analysis Mode";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.AnalysisModeClick);
-            // 
             // Settings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(220, 150);
-            this.Controls.Add(this.button1);
+            this.ClientSize = new System.Drawing.Size(220, 114);
             this.Controls.Add(this.blackPanel);
             this.Controls.Add(this.whitePanel);
             this.Controls.Add(this.start);
@@ -162,6 +149,5 @@
         private System.Windows.Forms.GroupBox blackPanel;
         private System.Windows.Forms.RadioButton blackComputer;
         private System.Windows.Forms.RadioButton blackHuman;
-        private System.Windows.Forms.Button button1;
     }
 }

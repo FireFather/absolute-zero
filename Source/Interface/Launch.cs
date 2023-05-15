@@ -2,53 +2,55 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+using AbsoluteZero.Source.Gameplay;
+using AbsoluteZero.Source.Testing;
 
-namespace AbsoluteZero {
-
+namespace AbsoluteZero.Source.Interface
+{
     /// <summary>
-    /// Handles the application launch. 
+    ///     Handles the application launch.
     /// </summary>
-    public static class Launch {
-
+    public static class Launch
+    {
         /// <summary>
-        /// Encapsulates a method that takes no parameters and returns no value. 
-        /// </summary>
-        private delegate void Action();
-
-        /// <summary>
-        /// The main entry point for the application. 
+        ///     The main entry point for the application.
         /// </summary>
         /// <param name="args">The command-line arguments.</param>
         [STAThread]
-        public static void Main(String[] args) {
-
+        public static void Main(string[] args)
+        {
             // Display terminal window by default. We will hide it later if necessary. 
             Terminal.Initialize();
 
             // Run as GUI application if there are no command-line arguments. Display 
             // the Settings window, which will display the main board window as needed. 
-            if (args.Length == 0) {
+            if (args.Length == 0)
+            {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new Settings());
             }
 
             // Run as command-line application if there are command-line arguments. 
-            else {
+            else
+            {
                 Action run = null;
-                List<String> epd = new List<String>();
+                var epd = new List<string>();
 
-                for (Int32 i = 0; i < args.Length; i++)
-                    if (args[i].EndsWith(".epd", StringComparison.InvariantCultureIgnoreCase)) {
-                        using (StreamReader sr = new StreamReader(args[i]))
-                            while (!sr.EndOfStream) {
-                                String line = sr.ReadLine();
-                                if (line.Length > 0)
+                for (var i = 0; i < args.Length; i++)
+                    if (args[i].EndsWith(".epd", StringComparison.InvariantCultureIgnoreCase))
+                        using (var sr = new StreamReader(args[i]))
+                        {
+                            while (!sr.EndOfStream)
+                            {
+                                var line = sr.ReadLine();
+                                if (!string.IsNullOrEmpty(line))
                                     epd.Add(line);
                             }
-                    } else
-                        switch (args[i]) {
-
+                        }
+                    else
+                        switch (args[i])
+                        {
                             // Unrecognized command.
                             default:
                                 Terminal.WriteLine("Unrecognized parameter: {0}", args[i]);
@@ -63,30 +65,30 @@ namespace AbsoluteZero {
 
                             // Limit move time.
                             case "-m":
-                                Restrictions.MoveTime = Int32.Parse(args[++i]);
+                                Restrictions.MoveTime = int.Parse(args[++i]);
                                 break;
 
                             // Limit depth.
                             case "-d":
-                                Restrictions.Depth = Int32.Parse(args[++i]);
+                                Restrictions.Depth = int.Parse(args[++i]);
                                 break;
 
                             // Limit nodes.
                             case "-n":
-                                Restrictions.Nodes = Int32.Parse(args[++i]);
+                                Restrictions.Nodes = int.Parse(args[++i]);
                                 break;
 
                             // UCI mode.
                             case "uci":
                             case "-uci":
                             case "-u":
-                                run = () => { UCI.Run(); };
+                                run = Uci.Run;
                                 break;
 
                             // Tournament mode. 
                             case "-t":
                                 run = () => { Tournament.Run(epd); };
-                                
+
                                 break;
 
                             // Test suite mode. 
@@ -95,8 +97,13 @@ namespace AbsoluteZero {
                                 break;
                         }
 
-                run();
+                run?.Invoke();
             }
         }
+
+        /// <summary>
+        ///     Encapsulates a method that takes no parameters and returns no value.
+        /// </summary>
+        private delegate void Action();
     }
 }

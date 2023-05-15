@@ -1,42 +1,41 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 
-namespace AbsoluteZero {
-
+namespace AbsoluteZero.Source.Gameplay
+{
     /// <summary>
-    /// Defines a chess player.
+    ///     Defines a chess player.
     /// </summary>
-    public interface IPlayer {
-
+    public interface IPlayer
+    {
         /// <summary>
-        /// The name of the player. 
+        ///     The name of the player.
         /// </summary>
-        String Name { get; }
+        string Name { get; }
 
         /// <summary>
-        /// Whether the player is willing to accept a draw offer. 
+        ///     Whether the player is willing to accept a draw offer.
         /// </summary>
-        Boolean AcceptsDraw { get; }
+        bool AcceptsDraw { get; }
 
         /// <summary>
-        /// Returns the player's move for the given position. 
+        ///     Returns the player's move for the given position.
         /// </summary>
         /// <param name="position">The position to make a move on.</param>
         /// <returns>The player's move.</returns>
-        Int32 GetMove(Position position);
+        int GetMove(Position.Position position);
 
         /// <summary>
-        /// Stops the player's move if applicable. 
+        ///     Stops the player's move if applicable.
         /// </summary>
         void Stop();
 
         /// <summary>
-        /// Resets the player. 
+        ///     Resets the player.
         /// </summary>
         void Reset();
 
         /// <summary>
-        /// Draws the player's graphical elements. 
+        ///     Draws the player's graphical elements.
         /// </summary>
         /// <param name="g">The drawing surface.</param>
         void Draw(Graphics g);

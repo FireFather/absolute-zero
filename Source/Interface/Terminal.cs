@@ -1,152 +1,131 @@
 ﻿using System;
-using System.Text;
-using System.Diagnostics;
 using System.IO;
+using System.Text;
+using AbsoluteZero.Source.Utilities;
 
-namespace AbsoluteZero {
-
+namespace AbsoluteZero.Source.Interface
+{
     /// <summary>
-    /// Represents the terminal for engine input and output. 
+    ///     Represents the terminal for engine input and output.
     /// </summary>
-    public static class Terminal {
+    public static class Terminal
+    {
+        /// <summary>
+        ///     The width of the terminal window.
+        /// </summary>
+        private const int Width = 82;
 
         /// <summary>
-        /// The width of the terminal window. 
+        ///     The height of the terminal window.
         /// </summary>
-        public const Int32 Width = 82;
+        private const int Height = 25;
 
         /// <summary>
-        /// The height of the terminal window. 
+        ///     The text that has been processed.
         /// </summary>
-        public const Int32 Height = 25;
+        private static readonly StringBuilder Text = new StringBuilder();
 
         /// <summary>
-        /// The row position of the terminal window. 
+        ///     The row position of the terminal window.
         /// </summary>
-        public static Int32 CursorTop {
-            get { return Console.CursorTop; }
-            set { Console.SetCursorPosition(0, value); }
+        public static int CursorTop
+        {
+            get => Console.CursorTop;
+            set => Console.SetCursorPosition(0, value);
         }
 
         /// <summary>
-        /// The text that has been processed. 
+        ///     Initializes the terminal.
         /// </summary>
-        private static StringBuilder _text = new StringBuilder();
-
-        /// <summary>
-        /// Initializes the terminal. 
-        /// </summary>
-        public static void Initialize() {
-            try {
-                Console.Title = "Engine Terminal";
+        public static void Initialize()
+        {
+            try
+            {
+                Console.Title = @"Engine Terminal";
                 Console.SetWindowSize(Width, Height);
-            } catch { }
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
         /// <summary>
-        /// Writes the specified string to the standard output stream. 
+        ///     Writes the given string, followed by the current line terminator, to the
+        ///     standard output stream.
         /// </summary>
         /// <param name="value">The value to write.</param>
-        public static void Write(String value) {
-            _text.Append(value);
-            Console.Write(value);
-        }
-
-        /// <summary>
-        /// Writes the text representation of the given object to the standard output 
-        /// stream. 
-        /// </summary>
-        /// <param name="value">The value to write.</param>
-        public static void Write(Object value) {
-            Write(value.ToString());
-        }
-
-        /// <summary>
-        /// Writes the text representation of the given objects to the standard 
-        /// output stream using the given formatting. 
-        /// </summary>
-        /// <param name="format">The format string.</param>
-        /// <param name="value">The value to write.</param>
-        public static void Write(String format, params Object[] values) {
-            Write(String.Format(format, values));
-        }
-
-        /// <summary>
-        /// Writes the given string, followed by the current line terminator, to the 
-        /// standard output stream. 
-        /// </summary>
-        /// <param name="value">The value to write.</param>
-        public static void WriteLine(String value = "") {
-            _text.AppendLine(value);
+        public static void WriteLine(string value = "")
+        {
+            Text.AppendLine(value);
             Console.WriteLine(value);
         }
 
         /// <summary>
-        /// Writes the text representation of the given object, followed by the 
-        /// current line terminator, to the standard output stream. 
+        ///     Writes the text representation of the given object, followed by the
+        ///     current line terminator, to the standard output stream.
         /// </summary>
         /// <param name="value">The value to write.</param>
-        public static void WriteLine(Object value) {
+        public static void WriteLine(object value)
+        {
             WriteLine(value.ToString());
         }
 
         /// <summary>
-        /// Writes the text representation of the given objects, followed by the 
-        /// current line terminator, to the standard output stream using the given 
-        /// formatting. 
+        ///     Writes the text representation of the given objects, followed by the
+        ///     current line terminator, to the standard output stream using the given
+        ///     formatting.
         /// </summary>
         /// <param name="format">The format string.</param>
-        /// <param name="value">The value to write.</param>
-        public static void WriteLine(String format, params Object[] values) {
-            WriteLine(String.Format(format, values));
+        /// <param name="values"></param>
+        public static void WriteLine(string format, params object[] values)
+        {
+            WriteLine(string.Format(format, values));
         }
 
         /// <summary>
-        /// Overwrites the text representation of the given objects, followed by the 
-        /// current line terminator, to the standard output stream using the given 
-        /// formatting, at the given row position. Moves back to previous position
-        /// after the write.
+        ///     Overwrites the text representation of the given objects, followed by the
+        ///     current line terminator, to the standard output stream using the given
+        ///     formatting, at the given row position. Moves back to previous position
+        ///     after the write.
         /// </summary>
         /// <param name="top">The row position to write at.</param>
         /// <param name="format">The format string.</param>
-        /// <param name="value">The value to write.</param>
-        public static void OverwriteLineAt(Int32 top, String format, params Object[] values) {
-            Int32 oldTop = CursorTop;
+        /// <param name="values"></param>
+        public static void OverwriteLineAt(int top, string format, params object[] values)
+        {
+            var oldTop = CursorTop;
             CursorTop = top;
-            String line = String.Format(format, values);
-            _text.AppendLine(line);
+            var line = string.Format(format, values);
+            Text.AppendLine(line);
             Console.WriteLine(line.PadRight(Console.WindowWidth));
             CursorTop = oldTop;
         }
 
         /// <summary>
-        /// Writes any buffered data to the underlying device. 
+        ///     Clears the output in the terminal.
         /// </summary>
-        public static void Flush() {
-            Console.Out.Flush();
-        }
-
-        /// <summary>
-        /// Clears the output in the terminal.
-        /// </summary>
-        public static void Clear() {
+        public static void Clear()
+        {
             Console.Clear();
         }
 
         /// <summary>
-        /// Writes all the text that has been written to the standard output stream 
-        /// to a file with the specified path. 
+        ///     Writes all the text that has been written to the standard output stream
+        ///     to a file with the specified path.
         /// </summary>
         /// <param name="path">The path of the file to write to.</param>
-        public static void SaveText(String path) {
-            File.WriteAllText(path, _text.ToString());
+        public static void SaveText(string path)
+        {
+            File.WriteAllText(path, Text.ToString());
         }
 
         /// <summary>
-        /// Hides the terminal window. 
+        ///     Hides the terminal window.
         /// </summary>
-        public static void Hide() {
-            Native.ShowWindow(Native.GetConsoleWindow(), Native.SW_HIDE);
+        public static void Hide()
+        {
+            Native.ShowWindow(Native.GetConsoleWindow(), Native.SwHide);
         }
     }
 }

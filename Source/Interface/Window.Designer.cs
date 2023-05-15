@@ -1,4 +1,4 @@
-﻿namespace AbsoluteZero {
+﻿namespace AbsoluteZero.Source.Interface {
     partial class Window {
         /// <summary>
         /// Required designer variable.
@@ -82,7 +82,7 @@
             this.savePGNMenuItem.Name = "savePGNMenuItem";
             this.savePGNMenuItem.Size = new System.Drawing.Size(151, 22);
             this.savePGNMenuItem.Text = "Save PGN";
-            this.savePGNMenuItem.Click += new System.EventHandler(this.SavePGNClick);
+            this.savePGNMenuItem.Click += new System.EventHandler(this.SavePgnClick);
             // 
             // saveOuputMenuItem
             // 
@@ -101,14 +101,14 @@
             this.enterFENMenuItem.Name = "enterFENMenuItem";
             this.enterFENMenuItem.Size = new System.Drawing.Size(151, 22);
             this.enterFENMenuItem.Text = "Enter FEN";
-            this.enterFENMenuItem.Click += new System.EventHandler(this.EnterFENClick);
+            this.enterFENMenuItem.Click += new System.EventHandler(this.EnterFenClick);
             // 
             // copyFENMenuItem
             // 
             this.copyFENMenuItem.Name = "copyFENMenuItem";
             this.copyFENMenuItem.Size = new System.Drawing.Size(151, 22);
             this.copyFENMenuItem.Text = "Copy FEN";
-            this.copyFENMenuItem.Click += new System.EventHandler(this.CopyFENClick);
+            this.copyFENMenuItem.Click += new System.EventHandler(this.CopyFenClick);
             // 
             // gameMenu
             // 
@@ -196,7 +196,7 @@
             this.multiPVMenuItem.Name = "multiPVMenuItem";
             this.multiPVMenuItem.Size = new System.Drawing.Size(137, 22);
             this.multiPVMenuItem.Text = "Multi PV";
-            this.multiPVMenuItem.Click += new System.EventHandler(this.MultiPVClick);
+            this.multiPVMenuItem.Click += new System.EventHandler(this.MultiPvClick);
             // 
             // displayMenu
             // 

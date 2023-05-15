@@ -1,77 +1,82 @@
-﻿using System;
-
-namespace AbsoluteZero {
+﻿namespace AbsoluteZero.Source.Gameplay
+{
+    /// <summary>
+    ///     Specifies the output type.
+    /// </summary>
+    public enum OutputType
+    {
+        Gui,
+        Uci,
+        None
+    }
 
     /// <summary>
-    /// Specifies the output type.
+    ///     Defines restrictions for engines in standard games.
     /// </summary>
-    public enum OutputType { GUI, UCI, None }
-
-    /// <summary>
-    /// Defines restrictions for engines in standard games. 
-    /// </summary>
-    public static class Restrictions {
+    public static class Restrictions
+    {
+        /// <summary>
+        ///     The output type.
+        /// </summary>
+        public static OutputType Output = OutputType.Gui;
 
         /// <summary>
-        /// The output type.
+        ///     The maximum number of milliseconds to use when moving.
         /// </summary>
-        public static OutputType Output = OutputType.GUI;
+        public static int MoveTime;
 
         /// <summary>
-        /// The maximum number of milliseconds to use when moving. 
+        ///     The maximum depth to search to when moving.
         /// </summary>
-        public static Int32 MoveTime;
+        public static int Depth;
 
         /// <summary>
-        /// The maximum depth to search to when moving.
+        ///     The maximum number of nodes to search when moving.
         /// </summary>
-        public static Int32 Depth;
+        public static long Nodes;
 
         /// <summary>
-        /// The maximum number of nodes to search when moving. 
+        ///     The minimum number of principal variations to search when moving.
         /// </summary>
-        public static Int64 Nodes;
+        public static int PrincipalVariations = 1;
 
         /// <summary>
-        /// The minimum number of principal variations to search when moving. 
+        ///     Whether to use time controls.
         /// </summary>
-        public static Int32 PrincipalVariations = 1;
+        public static bool UseTimeControls;
 
         /// <summary>
-        /// Whether to use time controls. 
+        ///     The time left for given side. TimeControl[c] gives the number of
+        ///     milliseconds left on the clock for colour c.
         /// </summary>
-        public static Boolean UseTimeControls;
+        public static int[] TimeControl;
 
         /// <summary>
-        /// The time left for given side. TimeControl[c] gives the number of 
-        /// milliseconds left on the clock for colour c.
+        ///     The time increment for given side. TimeIncrement[c] gives the number of
+        ///     milliseconds incremented for colour c after every move.
         /// </summary>
-        public static Int32[] TimeControl;
+        public static int[] TimeIncrement;
 
         /// <summary>
-        /// The time increment for given side. TimeIncrement[c] gives the number of 
-        /// milliseconds incremented for colour c after every move.
+        ///     Initializes default values.
         /// </summary>
-        public static Int32[] TimeIncrement;
-
-        /// <summary>
-        /// Initializes default values. 
-        /// </summary>
-        static Restrictions() {
+        static Restrictions()
+        {
             Reset();
         }
 
         /// <summary>
-        /// Resets the restrictions to the default values, with the exception of 
-        /// output type.
+        ///     Resets the restrictions to the default values, with the exception of
+        ///     output type.
         /// </summary>
-        public static void Reset() {
+        public static void Reset()
+        {
             UseTimeControls = false;
-            TimeControl = new Int32[2];
-            TimeIncrement = new Int32[2];
-            MoveTime = Int32.MaxValue;
-            Depth = Engine.DepthLimit;
-            Nodes = Int64.MaxValue;
+            TimeControl = new int[2];
+            TimeIncrement = new int[2];
+            MoveTime = int.MaxValue;
+            Depth = Engine.Engine.DepthLimit;
+            Nodes = long.MaxValue;
         }
     }
 }
